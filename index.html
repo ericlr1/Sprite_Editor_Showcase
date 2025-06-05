@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprite Editor Plugin for Godot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #478cbf;
+            --primary-dark: #2c5d8a;
+            --secondary: #e44d26;
+            --dark: #1a1e24;
+            --light: #f5f7fa;
+            --gray: #e2e8f0;
+            --success: #4caf50;
+            --godot: #478cbf;
+            --feature-bg: rgba(26, 30, 36, 0.7);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1e24, #2c3e50);
+            color: var(--light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 120px;
+        }
+        
+        header {
+            background: rgba(26, 30, 36, 0.95);
+            padding: 1.5rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+        
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(to right, var(--primary), #5ab9ea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+        
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+        
+        nav a:hover::after {
+            width: 100%;
+        }
+        
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 10%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(71, 140, 191, 0.1) 0%, rgba(26, 30, 36, 0.9) 70%);
+            z-index: -1;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, var(--primary), #5ab9ea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hero p {
+            font-size: 1.5rem;
+            max-width: 800px;
+            margin-bottom: 2.5rem;
+            color: var(--gray);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(71, 140, 191, 0.4);
+            border: 2px solid transparent;
+        }
+        
+        .cta-button:hover {
+            background: transparent;
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(71, 140, 191, 0.6);
+        }
+        
+        .cta-button i {
+            margin-left: 10px;
+        }
+        
+        section {
+            padding: 100px 10%;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 70px;
+            position: relative;
+        }
+        
+        .section-title h2 {
+            font-size: 2.8rem;
+            display: inline-block;
+            background: linear-gradient(to right, var(--primary), #5ab9ea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 4px;
+            background: var(--primary);
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 2px;
+        }
+        
+        .video-container {
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .features {
+            background: rgba(26, 30, 36, 0.7);
+            border-radius: 20px;
+            padding: 50px;
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: rgba(71, 140, 191, 0.5);
+        }
+        
+        .feature-icon {
+            font-size: 3.5rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .description-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(26, 30, 36, 0.7);
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .description-content h3 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin: 30px 0 15px;
+        }
+        
+        .description-content p, .description-content ul {
+            margin-bottom: 20px;
+            color: var(--gray);
+        }
+        
+        .description-content ul {
+            padding-left: 25px;
+            list-style: none;
+        }
+        
+        .description-content li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .description-content li::before {
+            content: '•';
+            color: var(--primary);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            font-size: 1.4rem;
+        }
+        
+        .feature-group {
+            background: rgba(71, 140, 191, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-group-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-item {
+            background: rgba(26, 30, 36, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 3px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(26, 30, 36, 0.7);
+        }
+        
+        .feature-item h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .benefit-card {
+            background: rgba(71, 140, 191, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(71, 140, 191, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .benefit-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .benefit-card i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        .distribution-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+        
+        .distribution-card {
+            background: rgba(26, 30, 36, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            flex: 1;
+            min-width: 250px;
+            max-width: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .distribution-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+        }
+        
+        .distribution-card h4 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .download-section {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(26, 30, 36, 0.8), rgba(44, 62, 80, 0.9));
+            border-radius: 20px;
+            padding: 80px 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .download-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(26, 30, 36, 0.7);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px dashed var(--primary);
+        }
+        
+        .download-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .github-button, .godot-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 15px 30px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            min-width: 220px;
+            justify-content: center;
+        }
+        
+        .github-button {
+            background: #24292e;
+        }
+        
+        .github-button:hover {
+            background: #2d3339;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+        
+        .godot-button {
+            background: var(--godot);
+        }
+        
+        .godot-button:hover {
+            background: #3a7aad;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(71, 140, 191, 0.6);
+        }
+        
+        .github-button i, .godot-button i {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .version-badge {
+            display: inline-block;
+            background: var(--success);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        footer {
+            background: rgba(26, 30, 36, 0.95);
+            padding: 40px 10%;
+            text-align: center;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .copyright {
+            color: var(--gray);
+            font-size: 1rem;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .social-links a {
+            color: var(--light);
+            font-size: 1.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            color: var(--primary);
+        }
+        
+        @media (max-width: 900px) {
+            header {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            nav ul {
+                margin-top: 15px;
+                gap: 1rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero p {
+                font-size: 1.2rem;
+            }
+            
+            section {
+                padding: 70px 5%;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+                padding: 30px;
+            }
+            
+            .description-content, .download-box {
+                padding: 30px;
+            }
+            
+            .feature-grid, .benefits-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2rem;
+            }
+            
+            .feature-card, .feature-item, .distribution-card {
+                padding: 20px;
+            }
+            
+            .download-options {
+                flex-direction: column;
+            }
+        }
+        
+        .godot-logo {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            margin-right: 10px;
+            background: white;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .godot-logo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, transparent 50%, #478cbf 50%),
+                linear-gradient(225deg, transparent 50%, #478cbf 50%),
+                linear-gradient(315deg, transparent 50%, #478cbf 50%),
+                linear-gradient(45deg, #478cbf 50%, transparent 50%);
+            background-size: 50% 50%;
+            background-position: top left, top right, bottom right, bottom left;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-paint-brush logo-icon"></i>
+            <div class="logo-text">Sprite Editor for Godot</div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#about">Features</a></li>
+                <li><a href="#download">Download</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Integrated Sprite Editor for Godot</h1>
+        <p>A free, open-source plugin to streamline your 2D game development workflow</p>
+        <a href="#download" class="cta-button">Download Now <i class="fas fa-download"></i></a>
+    </section>
+
+    <section id="demo">
+        <div class="section-title">
+            <h2>Plugin Demo</h2>
+        </div>
+        
+        <div class="video-container">
+            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="Plugin Demo" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        
+        <div class="features">
+            <div class="feature-card">
+                <i class="fas fa-brush feature-icon"></i>
+                <h3>Powerful Drawing Tools</h3>
+                <p>Brush, eraser, bucket fill, eyedropper, and more - all integrated directly in Godot.</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-bolt feature-icon"></i>
+                <h3>Optimized Workflow</h3>
+                <p>Eliminate context switching between Godot and external image editors.</p>
+            </div>
+            
+            <div class="feature-card">
+                <i class="fas fa-code-branch feature-icon"></i>
+                <h3>Open Source</h3>
+                <p>Free to use, modify, and contribute to under the MIT license.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="section-title">
+            <h2>Sprite Editor Features</h2>
+        </div>
+        
+        <div class="description-content">
+            <h3>Sprite Editing Tool for Godot</h3>
+            <p>This is a <strong>free and open source plugin</strong> specifically designed for the <strong>Godot</strong> game engine, which allows developers to <strong>create and edit 2D sprites directly within the editor</strong>, without the need for external programs like Photoshop, Krita, or Aseprite.</p>
+            
+            <div class="feature-group">
+                <div class="feature-group-title">
+                    <i class="fas fa-tools"></i>
+                    <h3>Main Features</h3>
+                </div>
+                
+                <h4>Basic drawing tools:</h4>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Brush</h4>
+                        <p>With different sizes for precise drawing control</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <h4>Eraser</h4>
+                        <p>Remove parts of your sprite with adjustable sizes</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <h4>Paint Bucket</h4>
+                        <p>Fill areas quickly with the selected color</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <h4>Color Wheel</h4>
+                        <p>Intuitive color selection interface</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <h4>Color Picker (Eyedropper)</h4>
+                        <p>Select colors already used on the canvas</p>
+                    </div>
+                </div>
+                
+                <h4>File management:</h4>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Save & Save As</h4>
+                        <p>Preserve your work easily within Godot's environment</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <h4>Project Integration</h4>
+                        <p>Seamless integration with Godot's file system</p>
+                    </div>
+                </div>
+                
+                <h4>Advanced tools (quality of life):</h4>
+                <div class="feature-grid">
+                    <div class="feature-item">
+                        <h4>Panning & Zoom</h4>
+                        <p>Navigate your canvas with ease</p>
+                    </div>
+                    
+                    <div class="feature-item">
+                        <h4>Intuitive Interface</h4>
+                        <p>Designed for both artists and non-artists</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-group">
+                <div class="feature-group-title">
+                    <i class="fas fa-bullseye"></i>
+                    <h3>Focus and Benefits</h3>
+                </div>
+                
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <i class="fas fa-users"></i>
+                        <h4>Designed for Indies</h4>
+                        <p>Created specifically for indie developers and small studios who need to save time and resources</p>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <i class="fas fa-road"></i>
+                        <h4>Optimized Art Pipeline</h4>
+                        <p>Eliminates the need to constantly import/export sprites from external programs</p>
+                    </div>
+                    
+                    <div class="benefit-card">
+                        <i class="fas fa-sync-alt"></i>
+                        <h4>Rapid Iterations</h4>
+                        <p>Facilitates quick changes and fosters a more agile workflow centered in Godot</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feature-group">
+                <div class="feature-group-title">
+                    <i class="fas fa-globe"></i>
+                    <h3>Distribution and Visibility</h3>
+                </div>
+                
+                <div class="distribution-cards">
+                    <div class="distribution-card">
+                        <i class="fab fa-github" style="font-size: 3rem; color: var(--primary);"></i>
+                        <h4>GitHub</h4>
+                        <p>The plugin will be published on GitHub with full source code access</p>
+                    </div>
+                    
+                    <div class="distribution-card">
+                        <i class="fas fa-box-open" style="font-size: 3rem; color: var(--primary);"></i>
+                        <h4>Godot Asset Library</h4>
+                        <p>Available directly through Godot's built-in asset library</p>
+                    </div>
+                    
+                    <div class="distribution-card">
+                        <i class="fas fa-video" style="font-size: 3rem; color: var(--primary);"></i>
+                        <h4>Promotional Materials</h4>
+                        <p>Website and demo trailer to showcase the plugin's capabilities</p>
+                    </div>
+                </div>
+                
+                <div class="summary-box" style="margin-top: 30px;">
+                    <p><strong>Future Vision:</strong> Designed for community adoption with the ambition to eventually be <strong>integrated as a base functionality of Godot</strong>.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download">
+        <div class="section-title">
+            <h2>Download the Plugin</h2>
+        </div>
+        
+        <div class="download-section">
+            <div class="download-box">
+                <i class="fas fa-download" style="font-size: 4rem; color: var(--primary); margin-bottom: 20px;"></i>
+                <h3>Get the Sprite Editor Plugin</h3>
+                <p>Download the latest version of the plugin from these sources:</p>
+                
+                <div class="download-options">
+                    <a href="https://github.com/ericlr1/Sprite-Editor" class="github-button" target="_blank">
+                        <i class="fab fa-github"></i> GitHub Releases
+                    </a>
+                    
+                    <a href="#" class="godot-button" target="_blank">
+                        <span class="godot-logo"></span> Godot Asset Library
+                    </a>
+                </div>
+                
+                <div class="version-badge">Latest Version: v1.0.0</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <i class="fas fa-paint-brush"></i>
+                <span>Sprite Editor for Godot</span>
+            </div>
+            <div class="copyright">
+                © 2025 Sprite Editor Plugin. Open-source project under MIT License.
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/ericlr1/Sprite-Editor" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="https://x.com/EricGameDev"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.youtube.com/@EricGameDev"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Header background change on scroll
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) {
+                header.style.background = 'rgba(26, 30, 36, 0.98)';
+                header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.4)';
+            } else {
+                header.style.background = 'rgba(26, 30, 36, 0.95)';
+                header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+            }
+        });
+        
+        // Simple animation for feature cards
+        document.querySelectorAll('.feature-card, .feature-item, .benefit-card, .distribution-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
